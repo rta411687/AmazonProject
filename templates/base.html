@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}My Site{% endblock %}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body { margin:0; font-family:sans-serif; padding-bottom:60px; }
+        .bottom-nav { position:fixed; bottom:0; width:100%; background:#111; display:flex; justify-content:space-around; align-items:center; padding:10px 0; color:white; z-index:1000; }
+        .bottom-nav a { text-align:center; color:white; text-decoration:none; font-size:14px; }
+        .bottom-nav a:hover { color:#00ffcc; }
+        .me-menu { position:fixed; bottom:60px; right:10px; background:#222; color:white; border-radius:8px; padding:10px; display:none; flex-direction:column; box-shadow:0 0 10px rgba(0,0,0,0.5); }
+        .me-menu a { color:white; text-decoration:none; padding:6px 0; font-size:14px; }
+        .me-menu a:hover { color:#00ffcc; }
+    </style>
+</head>
+<body>
+
+{% block content %}{% endblock %}
+
+{% if request.user.is_authenticated and request.user.role == 'user' %}
+  <!-- Me Menu -->
+  <div class="me-menu" id="meMenu">
+    <a href="{% url 'accounts:profile' %}"> Profile</a>
+    <a href="{% url 'accounts:payment' %}"> Payment</a>
+    <a href="{% url 'accounts:settings' %}"> Settings</a>
+    <a href="{% url 'wallet:bind_user_wallet' %}"> Wallet</a>
+    <a href="{% url 'wallet:withdraw' %}"> Withdraw</a>
+    <a href="{% url 'accounts:faq' %}"> FAQ</a>
+    <a href="{% url 'accounts:logout' %}"> Logout</a>
+  </div>
+
+  <!-- Bottom Navigation -->
+  <nav class="bottom-nav">
+      <a href="{% url 'products' %}"><br>Home</a>
+      <a href="{% url 'balance:wallet_dashboard' %}">Balance</a>
+      <a href="{% url 'accounts:activities' %}"><br>Activities</a>
+      <a href="javascript:void(0)" onclick="toggleMeMenu()"><br>Me</a>
+  </nav>
+
+  <script>
+    function toggleMeMenu() {
+      const menu = document.getElementById('meMenu');
+      menu.style.display = (menu.style.display === 'flex') ? 'none' : 'flex';
+    }
+  </script>
+{% endif %}
+
+</body>
+</html>

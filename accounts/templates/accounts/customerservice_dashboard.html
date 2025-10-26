@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Customer Service Dashboard</title>
+</head>
+<body>
+    <h1>Customer Service Dashboard</h1>
+
+    {% if regular_users %}
+        <table border="1" cellpadding="5">
+            <tr>
+                <th>Username</th>
+                <th>Phone</th>
+                <th>Actions</th>
+            </tr>
+            {% for user in regular_users %}
+            <tr>
+                <td>{{ user.username }}</td>
+                <td>{{ user.phone }}</td>
+                <td>
+                    <!-- Delete -->
+                    <form method="post" style="display:inline;">
+                        {% csrf_token %}
+                        <input type="hidden" name="user_id" value="{{ user.id }}">
+                        <input type="hidden" name="action" value="delete">
+                        <button type="submit">Delete</button>
+                    </form>
+
+                    <!-- Reset Login Password -->
+                    <form method="post" style="display:inline;">
+                        {% csrf_token %}
+                        <input type="hidden" name="user_id" value="{{ user.id }}">
+                        <input type="hidden" name="action" value="reset_login_password">
+                        <input type="password" name="new_password" placeholder="New Login Password" required>
+                        <button type="submit">Reset Login Password</button>
+                    </form>
+
+                    <!-- Reset Fund Password -->
+                    <form method="post" style="display:inline;">
+                        {% csrf_token %}
+                        <input type="hidden" name="user_id" value="{{ user.id }}">
+                        <input type="hidden" name="action" value="reset_fund_password">
+                        <input type="password" name="new_fund_password" placeholder="New Fund Password" required>
+                        <button type="submit">Reset Fund Password</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </table>
+    {% else %}
+        <p>No Regular Users found.</p>
+    {% endif %}
+</body>
+</html>

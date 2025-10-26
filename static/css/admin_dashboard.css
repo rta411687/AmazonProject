@@ -1,0 +1,145 @@
+/* Light & Dark Mode Variables */
+:root {
+    --bg-light: #f9fafb;
+    --bg-dark: #1f2937;
+    --row-hover-light: #f3f4f6;
+    --row-hover-dark: #374151;
+    --text-light: #111827;
+    --text-dark: #f3f4f6;
+    --border-light: #d1d5db;
+    --border-dark: #4b5563;
+    --btn-green: #10b981;
+    --btn-green-hover: #059669;
+    --btn-red: #ef4444;
+    --btn-red-hover: #b91c1c;
+    --btn-blue: #3b82f6;
+    --btn-blue-hover: #2563eb;
+    --btn-gray: #6b7280;
+    --btn-gray-hover: #4b5563;
+}
+
+body {
+    background-color: var(--bg-light);
+    color: var(--text-light);
+    font-family: 'Inter', sans-serif;
+}
+
+body.dark-mode {
+    background-color: var(--bg-dark);
+    color: var(--text-dark);
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 1.5rem;
+}
+
+h1 {
+    font-size: 2rem;
+    margin-bottom: 1.5rem;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 2rem;
+}
+
+th, td {
+    border: 1px solid var(--border-light);
+    padding: 0.75rem 1rem;
+    text-align: left;
+}
+
+body.dark-mode th, body.dark-mode td {
+    border-color: var(--border-dark);
+}
+
+thead {
+    background-color: var(--bg-light);
+}
+
+body.dark-mode thead {
+    background-color: var(--bg-dark);
+}
+
+tbody tr:hover {
+    background-color: var(--row-hover-light);
+}
+
+body.dark-mode tbody tr:hover {
+    background-color: var(--row-hover-dark);
+}
+
+button {
+    padding: 0.25rem 0.75rem;
+    border-radius: 0.375rem;
+    font-weight: 500;
+    cursor: pointer;
+    border: none;
+    transition: background 0.2s;
+}
+
+button.green { background-color: var(--btn-green); color: white; }
+button.green:hover { background-color: var(--btn-green-hover); }
+
+button.red { background-color: var(--btn-red); color: white; }
+button.red:hover { background-color: var(--btn-red-hover); }
+
+button.blue { background-color: var(--btn-blue); color: white; }
+button.blue:hover { background-color: var(--btn-blue-hover); }
+
+button.gray { background-color: var(--btn-gray); color: white; }
+button.gray:hover { background-color: var(--btn-gray-hover); }
+
+a.voucher-link {
+    color: var(--btn-blue);
+    text-decoration: underline;
+}
+
+body.dark-mode a.voucher-link {
+    color: #60a5fa; /* lighter blue for dark mode */
+}
+
+/* Forms inside table cells */
+td form {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 0.25rem;
+}
+
+input, select {
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.25rem;
+    border: 1px solid var(--border-light);
+}
+
+body.dark-mode input, body.dark-mode select {
+    background-color: #374151;
+    color: var(--text-dark);
+    border-color: var(--border-dark);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    table, thead, tbody, th, td, tr {
+        display: block;
+    }
+    th {
+        display: none;
+    }
+    td {
+        position: relative;
+        padding-left: 50%;
+    }
+    td::before {
+        position: absolute;
+        left: 1rem;
+        top: 0.75rem;
+        white-space: nowrap;
+        font-weight: bold;
+        content: attr(data-label);
+    }
+}

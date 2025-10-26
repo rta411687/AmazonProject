@@ -1,0 +1,237 @@
+{% load static %}
+<link rel="stylesheet" href="{% static 'css/admin_dashboard.css' %}">
+
+<table>
+    <thead>
+        <tr>
+            <th>Username</th>
+            <th>Phone</th>
+            <th>Wallet Address</th>
+            <th>Referral Code</th>
+            <th>Referred By</th>
+            <th>Pending Recharge</th>
+            <th>Vouchers</th>
+            <th>Pending Withdrawals</th>
+            <th>Stop Points</th>
+            <th>Task Progress</th>
+            <th>Daily Limit</th>
+            <th>Commission</th>
+            <th>Referral Commission</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for user in users %}
+        <tr>
+            <td data-label="Username">{{ user.username }}</td>
+            <td data-label="Phone">{{ user.phone }}</td>
+            <td data-label="Wallet Address">
+                {% if user.wallet_address %}{{ user.wallet_address.address }}{% else %}Not Bound{% endif %}
+            </td>
+            <td data-label="Referral Code">{{ user.referral_code }}</td>
+            <td data-label="Referred By">{{ user.referred_by.username|default:"N/A" }}</td>
+
+            <!-- Pending Recharge -->
+            <td data-label="Pending Recharge">
+                {% if user.pending_recharges %}
+                    {% for recharge in user.pending_recharges %}
+                        <form method="post" action="{% url 'balance:update_recharge_amount' recharge.id %}" style="display:flex; align-items:center; margin-bottom:4px;">
+                            {% csrf_token %}
+                            <input name="amount" value="{{ recharge.amount }}" style="width:70px; margin-right:6px; padding:4px;">
+                            <button type="submit" class="green btn-sm">Update</button>
+                        </form>
+                    {% endfor %}
+                {% else %}
+                    None
+                {% endif %}
+            </td>
+
+            <!-- Vouchers -->
+            <td data-label="Vouchers">
+                {% if user.pending_recharges %}
+                    {% for recharge in user.pending_recharges %}
+                        {% if recharge.voucher %}
+                            <div style="margin-bottom:4px;">
+                                <a href="{{ recharge.voucher.file.url }}" target="_blank" class="voucher-link">View</a>
+                                <form method="post" action="{% url 'balance:approve_voucher' recharge.voucher.id %}" style="display:inline-block;">
+                                    {% csrf_token %}
+                                    <button class="green btn-sm">Approve</button>
+                                </form>
+                                <form method="post" action="{% url 'balance:reject_voucher' recharge.voucher.id %}" style="display:inline-block;">
+                                    {% csrf_token %}
+                                    <button class="red btn-sm">Reject</button>
+                                </form>
+                            </div>
+                        {% else %}
+                            No Voucher
+                        {% endif %}
+                    {% endfor %}
+                {% else %}
+                    No Voucher
+                {% endif %}
+            </td>
+
+            <!-- Pending Withdrawals -->
+            <td data-label="Pending Withdrawals">
+                {% if user.withdrawals %}
+                    {% for withdrawal in user.withdrawals %}
+                        <div style="margin-bottom:4px;">
+                            {{ withdrawal.amount }} {{ withdrawal.network }}
+                            <form method="post" action="{% url 'wallet:approve_withdrawal' withdrawal.id %}" style="display:inline-block;">
+                                {% csrf_token %}
+                                <button class="green btn-sm">Approve</button>
+                            </form>
+                            <form method="post" action="{% url 'wallet:reject_withdrawal' withdrawal.id %}" style="display:inline-block;">
+                                {% csrf_token %}
+                                <button class="red btn-sm">Reject</button>
+                            </form>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    None
+                {% endif %}
+            </td>
+
+            <!-- Stop Points -->
+            <td data-label="Stop Points">
+                <!-- Existing StopPoints -->
+                {% for sp in user.stop_points %}
+                    <div style="display:flex; gap:4px; margin-bottom:4px; align-items:center;">
+                        <form method="post" action="{% url 'stoppoints:update_stop_point' user.id %}" style="display:flex; gap:4px; align-items:center;">
+                            {% csrf_token %}
+                            <input type="hidden" name="stop_point_id" value="{{ sp.id }}">
+                            <input type="number" name="new_point" value="{{ sp.point }}" min="1" style="width:60px; padding:3px;">
+                            <input type="number" name="new_required_balance" value="{{ sp.required_balance }}" min="0" style="width:80px; padding:3px;">
+                            <button type="submit" class="green btn-sm">Update</button>
+                        </form>
+                        <form method="post" action="{% url 'stoppoints:reset_stop_points' user.id %}" style="display:inline;">
+                            {% csrf_token %}
+                            <input type="hidden" name="stop_point_id" value="{{ sp.id }}">
+                            <button type="submit" class="red btn-sm">Reset</button>
+                        </form>
+                    </div>
+                {% endfor %}
+
+                <!-- New StopPoints Dynamic Rows -->
+                <div id="stoppoint-container-{{ user.id }}"></div>
+                <button type="button" class="add-row-btn green btn-sm" data-user-id="{{ user.id }}" style="margin-top:4px;">+ Add Row</button>
+            </td>
+
+            <!-- Task Progress -->
+            <td data-label="Task Progress">
+                {% for sp in user.stop_points %}
+                    {% if sp.required_balance <= user.wallet_address.balance %}
+                        <div style="width:100%; background-color:red; margin-bottom:2px; height:12px;"></div>
+                    {% else %}
+                        <div style="width:100%; background-color:green; margin-bottom:2px; height:12px;"></div>
+                    {% endif %}
+                {% endfor %}
+            </td>
+
+            <!-- Daily Limit -->
+            <td data-label="Daily Limit">
+                <form method="post" action="{% url 'accounts:admin_dashboard' %}" style="display:flex; align-items:center; gap:6px;">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="set_daily_limit">
+                    <input type="hidden" name="user_id" value="{{ user.id }}">
+                    <input type="number" name="daily_limit" min="1" value="{{ user.daily_task_limit }}" style="width:70px; text-align:center; padding:4px;">
+                    <button type="submit" class="green btn-sm">Save</button>
+                </form>
+            </td>
+
+            <!-- Commission -->
+            <td data-label="Commission">
+                <input type="number" step="0.01" min="0" max="100"
+                       value="{{ user.product_rate|default:0 }}"
+                       class="commission-input"
+                       data-user-id="{{ user.id }}"
+                       style="width:70px; text-align:center;">
+                <button class="green btn-sm update-commission-btn" data-user-id="{{ user.id }}">Update</button>
+                <span class="commission-status" id="commission-status-{{ user.id }}" style="margin-left:6px;"></span>
+            </td>
+
+            <!-- Referral Commission -->
+            <td data-label="Referral Commission">
+                <input type="number" step="0.01" min="0" max="100"
+                       value="{{ user.referral_rate|default:0 }}"
+                       class="referral-commission-input"
+                       data-user-id="{{ user.id }}"
+                       style="width:70px; text-align:center;">
+                <button class="green btn-sm update-referral-commission-btn" data-user-id="{{ user.id }}">Update</button>
+                <span class="referral-commission-status" id="referral-commission-status-{{ user.id }}" style="margin-left:6px;"></span>
+            </td>
+
+            <td data-label="Actions"></td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="14">No users found</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<!-- JS: Dynamic StopPoints and Commission -->
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    // Add dynamic StopPoint rows
+    document.querySelectorAll('.add-row-btn').forEach(button => {
+        button.addEventListener('click', () => {
+            const userId = button.dataset.userId;
+            const container = document.getElementById(`stoppoint-container-${userId}`);
+            const newRow = document.createElement('div');
+            newRow.style.display = 'flex';
+            newRow.style.gap = '4px';
+            newRow.style.alignItems = 'center';
+            newRow.style.marginBottom = '4px';
+            newRow.innerHTML = `
+                <form method="post" action="{% url 'stoppoints:add_stop_points' user.id %}" style="display:flex; gap:4px; align-items:center;">
+                    {% csrf_token %}
+                    <input type="number" name="stop_point[]" placeholder="Point" min="1" style="width:60px; padding:3px;">
+                    <input type="number" name="required_balance[]" placeholder="Required Balance" min="0" style="width:80px; padding:3px;">
+                    <button type="submit" class="green btn-sm">Submit</button>
+                </form>
+                <button type="button" class="red btn-sm remove-row-btn">Reset</button>
+            `;
+            container.appendChild(newRow);
+            newRow.querySelector('.remove-row-btn').addEventListener('click', () => newRow.remove());
+        });
+    });
+
+    // Commission updates
+    function updateCommission(selectorBtn, selectorInput, url, statusPrefix) {
+        document.querySelectorAll(selectorBtn).forEach(button => {
+            button.addEventListener('click', async (event) => {
+                const userId = button.dataset.userId;
+                const input = document.querySelector(`${selectorInput}[data-user-id="${userId}"]`);
+                const rate = input.value;
+                const statusSpan = document.getElementById(`${statusPrefix}-${userId}`);
+                try {
+                    const response = await fetch(url, {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            "X-CSRFToken": "{{ csrf_token }}"
+                        },
+                        body: JSON.stringify({ user_id: userId, rate: rate })
+                    });
+                    const data = await response.json();
+                    if (data.success) {
+                        statusSpan.textContent = "✔ Saved";
+                        statusSpan.style.color = "green";
+                        setTimeout(() => { statusSpan.textContent = ""; }, 2000);
+                    } else {
+                        statusSpan.textContent = "✖ Error";
+                        statusSpan.style.color = "red";
+                    }
+                } catch (err) {
+                    statusSpan.textContent = "✖ Error";
+                    statusSpan.style.color = "red";
+                }
+            });
+        });
+    }
+    updateCommission('.update-commission-btn', '.commission-input', "{% url 'commission:update_user_commission' %}", 'commission-status');
+    updateCommission('.update-referral-commission-btn', '.referral-commission-input', "{% url 'commission:update_user_referral_commission' %}", 'referral-commission-status');
+});
+</script>

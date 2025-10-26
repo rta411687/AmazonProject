@@ -1,0 +1,88 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- Tailwind CDN for quick styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="{% static 'products/home_replica.js' %}"></script>
+    <title>Home</title>
+  </head>
+  <body class="bg-gray-50 text-gray-900">
+    <header class="bg-white shadow">
+      <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
+        <div class="text-xl font-bold">MyShop</div>
+        <div class="flex-1 mx-4">
+          <input placeholder="Search products" class="w-full rounded-md border px-3 py-2" />
+        </div>
+        <div class="text-sm text-right">
+          <div>Balance</div>
+          <div class="font-semibold">{{ current_balance }}</div>
+        </div>
+      </div>
+    </header>
+
+    <main class="max-w-6xl mx-auto px-4 py-6">
+      <!-- Carousel -->
+      <div id="carousel" class="relative rounded-lg overflow-hidden mb-6" role="region" aria-label="Featured products carousel">
+        <div class="slides">
+        {% for p in products|slice:":3" %}
+          <div class="slide" role="group" aria-roledescription="slide" aria-label="Slide {{ forloop.counter }} of 3">
+            <img class="w-full h-48 object-cover" src="{% if p.image %}{{ p.image.url }}{% else %}{% static 'products/placeholder.svg' %}{% endif %}" alt="{{ p.title }}">
+            <div class="absolute left-4 bottom-4 bg-black bg-opacity-50 text-white px-3 py-1 rounded">{{ p.title }}</div>
+          </div>
+        {% endfor %}
+        </div>
+
+        <!-- Controls -->
+        <button id="carousel-prev" class="absolute left-2 top-1/2 -translate-y-1/2 bg-white bg-opacity-70 p-2 rounded-full" aria-label="Previous slide">‹</button>
+        <button id="carousel-next" class="absolute right-2 top-1/2 -translate-y-1/2 bg-white bg-opacity-70 p-2 rounded-full" aria-label="Next slide">›</button>
+
+        <!-- Dots -->
+        <div id="carousel-dots" class="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-2" aria-hidden="false"></div>
+      </div>
+
+      <!-- Categories -->
+      <div class="grid grid-cols-4 gap-4 mb-6">
+        <div class="bg-white p-4 rounded shadow text-center">Category 1</div>
+        <div class="bg-white p-4 rounded shadow text-center">Category 2</div>
+        <div class="bg-white p-4 rounded shadow text-center">Category 3</div>
+        <div class="bg-white p-4 rounded shadow text-center">Category 4</div>
+      </div>
+
+      <!-- Product Grid -->
+      <section class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+        {% for p in products %}
+        <article class="bg-white p-4 rounded shadow">
+          <img class="w-full h-40 object-cover rounded" src="{% if p.image %}{{ p.image.url }}{% else %}{% static 'products/placeholder.svg' %}{% endif %}" alt="{{ p.title }}">
+          <h3 class="mt-2 font-semibold text-sm">{{ p.title }}</h3>
+          <div class="mt-1 text-lg font-bold">{{ p.price }}</div>
+          {% if p.price > current_balance %}
+            <div class="mt-2 text-red-600 font-medium">Insufficient balance</div>
+          {% endif %}
+
+          <form method="post" action="{% url 'products:products_claim' %}" class="mt-3">
+            {% csrf_token %}
+            <input type="hidden" name="product_id" value="{{ p.id }}">
+            <button type="submit" class="w-full py-2 bg-orange-500 text-white rounded" {% if p.price > current_balance %}disabled{% endif %}>Get Task</button>
+          </form>
+        </article>
+        {% empty %}
+        <div class="col-span-full text-center py-8 bg-white rounded">No products available</div>
+        {% endfor %}
+      </section>
+    </main>
+
+    <!-- Bottom nav (mobile) -->
+    <nav class="fixed bottom-0 left-0 right-0 bg-white border-t md:hidden">
+      <div class="max-w-6xl mx-auto px-4 py-2 flex justify-between">
+        <a class="text-center flex-1" href="#">Home</a>
+        <a class="text-center flex-1" href="#">Categories</a>
+        <a class="text-center flex-1" href="#">Balance</a>
+        <a class="text-center flex-1" href="#">Account</a>
+      </div>
+    </nav>
+
+  </body>
+  </html>

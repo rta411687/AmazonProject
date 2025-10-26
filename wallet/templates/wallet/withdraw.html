@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mx-auto p-4 max-w-md">
+
+    <!-- Header -->
+    <div class="mb-6 text-center">
+        <h1 class="text-3xl font-bold text-gray-800 dark:text-gray-100">Withdraw Balance</h1>
+        <p class="text-gray-500 dark:text-gray-400 mt-1">Withdraw your funds securely to your bound wallet.</p>
+    </div>
+
+    <!-- Wallet Info Card -->
+    <div class="bg-white dark:bg-gray-800 shadow-lg rounded-2xl p-6 mb-6 border border-gray-200 dark:border-gray-700">
+        <div class="flex justify-between mb-3">
+            <span class="text-gray-600 dark:text-gray-300 font-medium">Wallet Address:</span>
+            <span class="font-semibold text-gray-800 dark:text-gray-100 break-all">{{ wallet.address }}</span>
+        </div>
+        <div class="flex justify-between mb-3">
+            <span class="text-gray-600 dark:text-gray-300 font-medium">Network:</span>
+            <span class="font-semibold text-gray-800 dark:text-gray-100">{{ wallet.network }}</span>
+        </div>
+        <div class="flex justify-between mb-4">
+            <span class="text-gray-600 dark:text-gray-300 font-medium">Current Balance:</span>
+            <span class="font-semibold text-gray-800 dark:text-gray-100">{{ balance }}</span>
+        </div>
+
+        <!-- Withdrawal Form -->
+        <form method="POST" class="flex flex-col gap-4">
+            {% csrf_token %}
+            
+            <!-- Network Select -->
+            <div>
+                <label class="block text-gray-700 dark:text-gray-300 font-medium mb-1">Select Network</label>
+                <select name="network" class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 dark:bg-gray-700 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-400" required>
+                    {% for value, display in networks %}
+                        <option value="{{ value }}" {% if wallet.network == value %}selected{% endif %}>{{ display }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Fund Password -->
+            <div>
+                <label class="block text-gray-700 dark:text-gray-300 font-medium mb-1">Fund Password</label>
+                <input type="password" name="fund_password" placeholder="Enter fund password" required
+                       class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 dark:bg-gray-700 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-400">
+            </div>
+
+            <button type="submit"
+                    class="bg-blue-500 text-white font-semibold px-4 py-2 rounded-lg hover:bg-blue-600 transition duration-200 shadow-md hover:shadow-lg">
+                Withdraw All (Leave {{ min_leftover }} cents)
+            </button>
+        </form>
+    </div>
+
+    <!-- Back Button -->
+    <div class="text-center mt-4">
+        <a href="{% url 'wallet:bind_user_wallet' %}" class="text-blue-500 dark:text-blue-400 hover:underline font-semibold">
+            &larr; Back to Wallet
+        </a>
+    </div>
+
+</div>
+{% endblock %}

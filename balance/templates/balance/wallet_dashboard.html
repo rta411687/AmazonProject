@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="container mx-auto p-4 max-w-md">
+
+    <!-- Wallet Overview -->
+    <h2 class="text-xl font-bold mb-4">Wallet Overview</h2>
+    <div class="grid grid-cols-2 gap-4 mb-4">
+
+        <!-- Current Balance -->
+        <div class="p-4 border rounded shadow-sm bg-blue-50">
+            <h4 class="font-semibold">Current Balance</h4>
+            <p>{{ wallet.current_balance|floatformat:2 }}</p>
+        </div>
+
+        <!-- Product Commission -->
+        <div class="p-4 border rounded shadow-sm bg-green-50">
+            <h4 class="font-semibold">Product Commission</h4>
+            <p>{{ wallet.product_commission|floatformat:2 }}</p>
+        </div>
+
+        <!-- Referral Commission -->
+        <div class="p-4 border rounded shadow-sm bg-yellow-50">
+            <h4 class="font-semibold">Referral Commission</h4>
+            <p>{{ wallet.referral_commission|floatformat:2 }}</p>
+        </div>
+
+        <!-- Total Balance -->
+        <div class="p-4 border rounded shadow-sm bg-purple-50">
+            <h4 class="font-semibold">Total Balance (Lifetime)</h4>
+            <p>{{ wallet.cumulative_total|floatformat:2 }}</p>
+        </div>
+
+    </div>
+
+    <!-- Today's Commission -->
+    <div class="p-4 border rounded shadow-sm bg-gray-100 mb-4">
+        <h3 class="font-semibold mb-2 text-center">Today's Commission</h3>
+        <p><strong>Product Commission:</strong> {{ today_product_commission|floatformat:2 }}</p>
+        <p><strong>Referral Commission:</strong> {{ today_referral_commission|floatformat:2 }}</p>
+        <hr class="my-2">
+        <p><strong>Total Today:</strong> {{ today_commission|floatformat:2 }}</p>
+    </div>
+
+    <!-- Recharge Form -->
+    <div class="mb-6 p-4 border rounded shadow-sm">
+        <h3 class="font-semibold mb-2">Recharge Your Wallet</h3>
+        <form method="POST" action="{% url 'balance:recharge_amount' %}">
+            {% csrf_token %}
+            <!-- Predefined Amount Buttons -->
+            <div class="mb-2 flex flex-wrap gap-2">
+                {% for amount in recharge_amounts %}
+                    <button type="button" class="predefined-btn px-3 py-1 bg-gray-200 rounded" data-amount="{{ amount }}">{{ amount }}</button>
+                {% endfor %}
+            </div>
+
+            <!-- Manual Input + Submit -->
+            <input type="number" name="amount" id="amount-input" placeholder="Or enter amount" required class="border rounded px-2 py-1 w-full mb-2">
+            <button type="submit" class="w-full bg-blue-600 text-white px-3 py-2 rounded">Continue</button>
+        </form>
+
+        <script>
+            document.querySelectorAll('.predefined-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    document.getElementById('amount-input').value = btn.dataset.amount;
+                });
+            });
+        </script>
+    </div>
+
+    <!-- Pending Recharge -->
+    {% if pending_recharge %}
+        <div class="p-4 border rounded shadow-sm mb-4 text-yellow-600">
+            You have a pending recharge of {{ pending_recharge.amount|floatformat:2 }} awaiting voucher upload.
+        </div>
+    {% endif %}
+
+    <!-- Recharge History -->
+    <div class="p-4 border rounded shadow-sm">
+        <h3 class="font-semibold mb-2">Recharge History</h3>
+        {% if history %}
+        <table class="w-full border-collapse text-sm">
+            <thead>
+                <tr class="bg-gray-100">
+                    <th class="border px-2 py-1 text-left">Amount</th>
+                    <th class="border px-2 py-1 text-left">Date</th>
+                    <th class="border px-2 py-1 text-left">Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for r in history %}
+                <tr>
+                    <td class="border px-2 py-1">{{ r.amount|floatformat:2 }}</td>
+                    <td class="border px-2 py-1">{{ r.created_at|date:"Y-m-d H:i" }}</td>
+                    <td class="border px-2 py-1">
+                        {% if r.status == "approved" %}
+                            <span class="text-green-600 font-semibold">{{ r.status|capfirst }}</span>
+                        {% elif r.status == "rejected" %}
+                            <span class="text-red-600 font-semibold">{{ r.status|capfirst }}</span>
+                        {% else %}
+                            <span class="text-yellow-600 font-semibold">{{ r.status|capfirst }}</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p>No recharge history yet.</p>
+        {% endif %}
+    </div>
+
+</div>
+{% endblock %}

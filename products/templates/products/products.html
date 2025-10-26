@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+
+{% block title %}Products{% endblock %}
+
+{% block content %}
+<div style="max-width:500px; margin:0 auto; text-align:center;">
+
+    <h1 style="margin-bottom:20px;">Products Task</h1>
+
+    <!-- Django messages -->
+    {% if messages %}
+        <div style="margin-bottom:12px;">
+            {% for message in messages %}
+                <p style="color:{% if message.tags == 'warning' %}#d9534f{% else %}#333{% endif %}; font-weight:bold;">
+                    {{ message }}
+                </p>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    {% if product %}
+        <p>Task {{ display_task_number }} / {{ daily_limit }}</p>
+
+        <!-- Product Card -->
+        <div style="border:1px solid #ccc; padding:20px; margin:20px auto; border-radius:8px; box-shadow:0 2px 6px rgba(0,0,0,0.1);">
+            <img src="{{ product.file.url }}" alt="Product Image" style="max-width:100%; height:auto; display:block; margin:0 auto 10px;">
+            <p><strong>Price:</strong> {{ product.price|floatformat:2 }}</p>
+        </div>
+
+        <!-- Wallet Summary -->
+        <div class="wallet-info" style="margin-top:20px; text-align:left; border:1px solid #ccc; padding:15px; border-radius:8px; background:#f9f9f9;">
+            <h3 style="text-align:center; font-weight:bold;">Wallet Summary</h3>
+            
+            <p><strong>Current Balance:</strong> {{ current_balance|floatformat:2 }}</p>
+            <p><strong>Product Commission:</strong> {{ product_commission|floatformat:2 }}</p>
+            <p><strong>Referral Commission:</strong> {{ referral_commission|floatformat:2 }}</p>
+            <p><strong>Total Balance:</strong> {{ total_balance|floatformat:2 }}</p>
+
+            <hr class="my-2">
+
+            <h4 style="text-align:center; font-weight:bold;">Today's Commissions</h4>
+            <p><strong>Product:</strong> {{ today_product_commission|floatformat:2 }}</p>
+            <p><strong>Referral:</strong> {{ today_referral_commission|floatformat:2 }}</p>
+            <p><strong>Total Today:</strong> {{ today_commission|floatformat:2 }}</p>
+        </div>
+
+        <!-- StopPoint or Balance Warning -->
+        {% if not can_proceed %}
+            <p style="color:#d9534f; font-weight:bold; margin-top:15px;">
+                {% if block_reason %}{{ block_reason }}{% else %}Cannot proceed with this task.{% endif %}
+            </p>
+        {% endif %}
+
+        <!-- Next Product Button -->
+        <form method="post" style="margin-top:20px;">
+            {% csrf_token %}
+            <button type="submit" name="next_product"
+                    {% if not can_proceed %}disabled{% endif %}
+                    style="padding:10px 20px; font-size:16px; border:none; border-radius:5px;
+                           background-color:{% if can_proceed %}#007bff{% else %}#ccc{% endif %};
+                           color:white; cursor:{% if can_proceed %}pointer{% else %}not-allowed{% endif %};">
+                {% if all_products_completed %}All Tasks Completed{% else %}Next Product{% endif %}
+            </button>
+        </form>
+
+    {% else %}
+        <p style="margin-top:20px; font-weight:bold; color:#d9534f;">
+            {% if all_products_completed %}
+                You have completed all tasks for today.
+            {% else %}
+                No products available or blocked by StopPoint.
+            {% endif %}
+        </p>
+    {% endif %}
+
+</div>
+{% endblock %}
